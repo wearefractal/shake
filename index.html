@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Shake by wearefractal</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Shake</h1>
+        <p>Deployment tool for node</p>
+        <p class="view"><a href="https://github.com/wearefractal/shake">View the Project on GitHub <small>wearefractal/shake</small></a></p>
+        <ul>
+          <li><a href="https://github.com/wearefractal/shake/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/wearefractal/shake/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/wearefractal/shake">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>Information</h2>
+
+<table>
+<tr>
+<td>Package</td>
+<td>shake</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>Deployment tool for node</td>
+</tr>
+<tr>
+<td>Node Version</td>
+<td>&gt;= 0.4</td>
+</tr>
+</table><h2>Usage</h2>
+
+<h3>Running tasks</h3>
+
+<p><code>$ shake setup:deploy:something["some arg", true, 2]:status</code></p>
+
+<h3>Defining Tasks</h3>
+
+<p>Add a .shake.coffee or .shake.js file to your project root.</p>
+
+<p>A task is a function that takes 3 arguments. Any arguments inside [ and ] will be applied to the task function after the initial 3.</p>
+
+<div class="highlight">
+<pre><span class="nv">module.exports =</span>
+  <span class="nv">sometask: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="c1"># local = local machine</span>
+    <span class="c1"># remote = remote machine (defined in target)</span>
+    <span class="nx">local</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"""</span>
+<span class="s">    whoami</span>
+<span class="s">    ls -la</span>
+<span class="s">    mkdir test</span>
+<span class="s">    """</span><span class="p">,</span> <span class="nf">(res) -&gt;</span>
+      <span class="c1"># res = array of stdout+stderr</span>
+      <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"ls -la"</span><span class="p">,</span> <span class="nf">(res) -&gt;</span>
+        <span class="nx">done</span> <span class="nx">res</span> <span class="c1"># Call this when the task is finished</span>
+        <span class="c1"># done() will start the next tasks and log its arguments</span>
+</pre>
+</div>
+
+
+<h3>Example config</h3>
+
+<p>Here is an example config demonstrating basic functionality:</p>
+
+<div class="highlight">
+<pre><span class="c1"># This is a non-standard config used only within this config</span>
+<span class="c1"># you can make this file look like whatever you want as long as you export</span>
+<span class="c1"># your tasks and target</span>
+<span class="nv">app =</span>
+  <span class="nv">sudo: </span><span class="s">"sudo"</span> <span class="c1"># Change this to "" to disable sudo</span>
+  <span class="nv">parent: </span><span class="s">'/var/www/'</span>
+  <span class="nv">name: </span><span class="s">'your cool app name'</span>
+<span class="nv">app.repository = </span><span class="s">"git@github.com:your cool username/</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">.git"</span>
+<span class="nv">app.folder = </span><span class="s">"</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">parent</span><span class="si">}#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">/"</span>
+<span class="nv">app.start = </span><span class="s">"coffee </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s">start.coffee"</span>
+<span class="nv">app.log = </span><span class="s">"/var/log/</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">.log"</span>
+
+
+<span class="nv">module.exports =</span>
+  <span class="nv">target: </span><span class="s">'your cool server'</span>
+  <span class="nv">clean: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"""</span>
+<span class="s">    </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> rm -rf </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    """</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">setup: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"""</span>
+<span class="s">    NAME=`whoami`;</span>
+<span class="s">    </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> mkdir -p </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> chown -R $NAME:$NAME </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    git clone </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">repository</span><span class="si">}</span><span class="s"> </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    cd </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    npm install</span>
+<span class="s">    """</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">deploy: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"""</span>
+<span class="s">    cd </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">folder</span><span class="si">}</span><span class="s"></span>
+<span class="s">    git pull</span>
+<span class="s">    sudo killall node</span>
+<span class="s">    npm install</span>
+<span class="s">    </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> stop </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s"></span>
+<span class="s">    </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> start </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s"></span>
+<span class="s">    """</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">start: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> start </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">"</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">stop: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> stop </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">"</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">restart: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">sudo</span><span class="si">}</span><span class="s"> restart </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">"</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">log: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"tail -n 100 </span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="si">}</span><span class="s">"</span><span class="p">,</span> <span class="nx">done</span>
+
+  <span class="nv">status: </span><span class="nf">(local, remote, done) -&gt;</span>
+    <span class="nx">remote</span><span class="p">.</span><span class="nx">exec</span> <span class="s">"ps -eo args | grep '</span><span class="si">#{</span><span class="nx">app</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">' | grep -v grep"</span><span class="p">,</span> <span class="nf">(res) -&gt;</span>
+      <span class="nx">done</span> <span class="k">if</span> <span class="nx">res</span> <span class="k">then</span> <span class="s">"Online"</span> <span class="k">else</span> <span class="s">"Offline"</span>
+</pre>
+</div>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/wearefractal">wearefractal</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+  </body>
+</html>
